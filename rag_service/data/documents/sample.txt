@@ -1,0 +1,16 @@
+Neural networks are mathematical models inspired by the human brain.
+They consist of interconnected neurons that process information.
+Deep learning uses multi-layer neural networks to learn complex patterns.
+
+Transformers are a type of neural network architecture introduced by Google in 2017.
+The key innovation is the attention mechanism, which allows the model to look at all words in a sequence simultaneously.
+GPT (Generative Pre-trained Transformer) is a decoder-only transformer architecture.
+
+RAG (Retrieval-Augmented Generation) combines information retrieval with text generation.
+First, relevant documents are retrieved from a knowledge base using semantic search.
+Then, the retrieved context is provided to a language model to generate a grounded response.
+This approach reduces hallucinations and improves factual accuracy.
+
+FAISS (Facebook AI Similarity Search) is a library for efficient similarity search.
+It indexes vectors and finds the nearest neighbors in milliseconds.
+It supports various indexing methods for different speed-accuracy trade-offs.

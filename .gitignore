@@ -1,0 +1,13 @@
+dist/
+build/
+*.spec
+__pycache__/
+*.pyc
+*.pyo
+gai_model_max.pkl
+*.egg-info/
+*.log
+.venv/
+.env
+rag_service/data/vector_store.index*
+training_log.txt
