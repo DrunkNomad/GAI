@@ -97,3 +97,14 @@ python scripts/train_model_final.py \
 - **sentence-transformers** — embeddings
 - **NumPy** — tensor operations
 - **Docker** — containerization
+- **Gradio** — web UI
+
+## Web UI
+
+```bash
+make ui
+# or
+python -m src.ui
+```
+
+Opens at http://localhost:7860
