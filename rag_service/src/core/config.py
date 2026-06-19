@@ -5,7 +5,7 @@ from pathlib import Path
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
-    model_path: Path = Path(__file__).resolve().parent.parent.parent.parent / "gai_model_max.pkl"
+    model_path: Path = Path(__file__).resolve().parent.parent.parent.parent / "gai_model_v5_max.pkl"
     embedding_model: str = "intfloat/multilingual-e5-small"
     vector_db_path: Path = Path("data/vector_store.index")
     llm_api_key: str = ""

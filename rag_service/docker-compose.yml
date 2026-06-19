@@ -1,15 +1,14 @@
-version: "3.9"
-
 services:
   rag-service:
-    build: .
+    build:
+      context: ..
+      dockerfile: rag_service/Dockerfile
     ports:
       - "8000:8000"
     volumes:
       - ./data:/app/data
-      - ../gai_model_max.pkl:/app/gai_model_max.pkl
     environment:
       - USE_LOCAL_MODEL=true
-      - MODEL_PATH=/app/gai_model_max.pkl
+      - MODEL_PATH=/app/gai_model_v5_max.pkl
       - VECTOR_DB_PATH=/app/data/vector_store.index
     restart: unless-stopped

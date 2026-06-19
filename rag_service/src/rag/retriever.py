@@ -25,10 +25,10 @@ class RAGPipeline:
         if use_rag and len(self.store) > 0:
             results = self.retrieve(question)
             context = "\n\n".join([text for text, _ in results])
-            prompt = f"Context:\n{context}\n\nQuestion: {question}\nAnswer:"
+            prompt = f"{context}\n\n{question} "
         else:
             results = []
-            prompt = f"User: {question}\nAssistant:"
+            prompt = f"{question} "
 
         answer = self.generator.generate(prompt, max_new_tokens=settings.max_tokens)
         return answer, results

@@ -1,6 +1,6 @@
 import time
-import numpy as np
-from ..tensor import Tensor
+import torch
+from ..tensor import tensor
 
 
 class Trainer:
@@ -13,8 +13,8 @@ class Trainer:
 
     def train_step(self, batch_size):
         xs, ys = self.dataset.get_batch(batch_size)
-        x = Tensor(xs, requires_grad=False)
-        y = Tensor(ys, requires_grad=False)
+        x = torch.tensor(xs, dtype=torch.long)
+        y = torch.tensor(ys, dtype=torch.long)
         _, loss = self.model(x, y)
         self.optimizer.zero_grad()
         loss.backward()
@@ -37,11 +37,12 @@ class Trainer:
         print(f"Training done in {time.time() - start:.1f}s. Final loss: {loss_val:.4f}")
 
     def generate_sample(self, prompt="", max_tokens=50, temperature=1.0):
+        import numpy as np
         if prompt:
             tokens = self.tokenizer.encode(prompt)
-            x = Tensor(np.array([tokens], dtype=np.int64), requires_grad=False)
+            x = torch.tensor([tokens], dtype=torch.long)
         else:
-            x = Tensor(np.zeros((1, 1), dtype=np.int64), requires_grad=False)
+            x = torch.zeros((1, 1), dtype=torch.long)
         out = self.model.generate(x, max_tokens, temperature)
         text = self.tokenizer.decode(out[0, x.shape[1]:].tolist())
         print(f"Sample: {prompt}{text}")

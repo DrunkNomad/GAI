@@ -1,10 +1,10 @@
 import pickle
 from pathlib import Path
 
+import torch
 import numpy as np
 
 from gai.model.gpt import GPT
-from gai.tensor import Tensor
 
 
 class CustomGPTGenerator:
@@ -21,18 +21,23 @@ class CustomGPTGenerator:
         model = GPT(
             vocab_size=config["vocab_size"],
             embed_dim=config["embed_dim"],
-            num_heads=config["num_heads"],
-            num_layers=config["num_layers"],
-            ff_dim=config["ff_dim"],
+            num_heads=config.get("num_heads", 4),
+            num_layers=config.get("num_layers", 4),
+            ff_dim=config.get("ff_dim", config["embed_dim"] * 4),
             max_seq_len=config["max_seq_len"],
             dropout=0.0,
         )
         model.eval()
 
-        loaded_params = dict(data["model_state"])
-        for param in model.parameters():
-            if param.label in loaded_params:
-                param.data = loaded_params[param.label]
+        state = data["model_state"]
+        if isinstance(state, list):
+            state_dict = {}
+            for i, (label, weight) in enumerate(state):
+                state_dict[f"_list_param_{i}"] = torch.from_numpy(np.asarray(weight))
+            model.load_state_dict(state_dict, strict=False)
+        else:
+            torch_state = {k: torch.from_numpy(np.asarray(v)) for k, v in state.items()}
+            model.load_state_dict(torch_state)
 
         tokenizer = data["tokenizer"]
         return model, tokenizer, config
@@ -40,9 +45,9 @@ class CustomGPTGenerator:
     def generate(self, prompt: str, max_new_tokens: int = 128) -> str:
         tokens = self.tokenizer.encode(prompt)
         seq_len = self.config["max_seq_len"]
-        x = np.array([tokens[-seq_len:]], dtype=np.int64)
+        x = torch.tensor([tokens[-seq_len:]], dtype=torch.long)
         out = self.model.generate(
-            Tensor(x, requires_grad=False),
+            x,
             max_new_tokens=max_new_tokens,
             temperature=self.temperature,
             top_k=self.top_k,

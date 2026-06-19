@@ -1,13 +1,30 @@
+# Build
 dist/
 build/
 *.spec
+*.egg-info/
+
+# Python
 __pycache__/
 *.pyc
 *.pyo
-gai_model_max.pkl
-*.egg-info/
-*.log
 .venv/
+
+# Environment
 .env
+
+# Logs
+*.log
+training_log*.txt
+
+# Test outputs
+test_*.txt
+
+# Model files (too large for git)
+*.pkl
+
+# Training data (too large for git)
+training_data_*.txt
+
+# RAG service
 rag_service/data/vector_store.index*
-training_log.txt

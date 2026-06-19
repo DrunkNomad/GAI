@@ -1,5 +1,5 @@
-import numpy as np
-from ..tensor import Tensor
+import torch
+import torch.nn.functional as F
 from .module import Module
 from .linear import Linear
 from .dropout import Dropout
@@ -8,7 +8,7 @@ from .dropout import Dropout
 class MultiHeadAttention(Module):
     def __init__(self, embed_dim, num_heads, dropout=0.0, causal=True):
         super().__init__()
-        assert embed_dim % num_heads == 0, "embed_dim must be divisible by num_heads"
+        assert embed_dim % num_heads == 0
         self.embed_dim = embed_dim
         self.num_heads = num_heads
         self.head_dim = embed_dim // num_heads
@@ -25,36 +25,24 @@ class MultiHeadAttention(Module):
         H = self.num_heads
         D = self.head_dim
 
-        q = self.q_proj(x).reshape(B, T, H, D).transpose((0, 2, 1, 3))
-        k = self.k_proj(x).reshape(B, T, H, D).transpose((0, 2, 1, 3))
-        v = self.v_proj(x).reshape(B, T, H, D).transpose((0, 2, 1, 3))
+        q = self.q_proj(x).view(B, T, H, D).transpose(1, 2)
+        k = self.k_proj(x).view(B, T, H, D).transpose(1, 2)
+        v = self.v_proj(x).view(B, T, H, D).transpose(1, 2)
 
-        score = q @ k.transpose((0, 1, 3, 2)) / np.sqrt(D)
+        attn = (q @ k.transpose(-2, -1)) * (D ** -0.5)
 
         if self.causal:
-            causal_mask = np.triu(np.ones((T, T), dtype=np.float32) * -1e9, k=1)
-            score = score + Tensor(causal_mask, requires_grad=False)
+            causal_mask = torch.triu(
+                torch.full((T, T), float("-inf"), device=x.device, dtype=x.dtype), diagonal=1
+            )
+            attn = attn + causal_mask
 
         if mask is not None:
-            score = score + mask
+            attn = attn + mask
 
-        attn = Tensor(
-            np.exp(score.data - score.data.max(axis=-1, keepdims=True)) / (
-                np.exp(score.data - score.data.max(axis=-1, keepdims=True)).sum(axis=-1, keepdims=True) + 1e-10
-            ),
-            requires_grad=score.requires_grad,
-        )
-        if attn.requires_grad:
-            class AttnFn:
-                @staticmethod
-                def backward(depends_on, grad):
-                    s, _ = depends_on[0]
-                    a = attn.data
-                    return [a * (grad - (a * grad).sum(axis=-1, keepdims=True))]
-            attn._depends_on = [(score, {})]
-            attn._creation_op = AttnFn
-
+        attn = F.softmax(attn, dim=-1)
         attn = self.dropout(attn)
-        out = (attn @ v).transpose((0, 2, 1, 3)).reshape(B, T, C)
+
+        out = (attn @ v).transpose(1, 2).contiguous().view(B, T, C)
         out = self.out_proj(out)
         return out
